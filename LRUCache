@@ -1,0 +1,149 @@
+public class LRUCache 
+{
+    // 1. The Decoupled Node
+    private class DbNode 
+    {
+        public int Key { get; set; }
+        public int Value { get; set; }
+        public DbNode Next { get; set; }
+        public DbNode Prev { get; set; }
+        
+        public DbNode(int key, int value) 
+        {
+            Key = key;
+            Value = value;
+        }
+    }
+
+    private readonly int _capacity;
+    private readonly DbNode _dummyHead;
+    private readonly DbNode _dummyTail;
+    
+    // ---------------------------------------------------------
+    // MISSING BLOCK 1: Declare the Dictionary. 
+    // It must map an integer key to a DbNode in memory.
+    // ---------------------------------------------------------
+    private Dictionary<int, DbNode> _cache; 
+
+
+    public LRUCache(int capacity) 
+    {
+        _capacity = capacity;
+        
+        // ---------------------------------------------------------
+        // MISSING BLOCK 2: Instantiate the Dictionary you declared above.
+        // ---------------------------------------------------------
+        _cache = new Dictionary<int, DbNode>();
+        
+        // ---------------------------------------------------------
+        // MISSING BLOCK 3: Sentinel Node Setup
+        // 1. Instantiate _dummyHead and _dummyTail (pass -1, -1 for key/val).
+        // 2. Wire them to point to each other! (Head's Next is Tail, Tail's Prev is Head).
+        // ---------------------------------------------------------
+        _dummyHead = new DbNode(-1, -1);
+        _dummyTail = new DbNode(-1, -1);
+        _dummyHead.Next = _dummyTail;
+        _dummyTail.Prev = _dummyHead;
+        
+    }
+
+
+    // Helper 1: Rip a node out of the list
+    private void RemoveNode(DbNode node) 
+    {
+        // ---------------------------------------------------------
+        // YOUR TURN: 
+        // 1. Save the node's Prev and Next into local variables.
+        // 2. Wire those two neighbors to point to each other, bypassing 'node'.
+        // ---------------------------------------------------------
+        var prev = node.Prev;
+        var next = node.Next;
+        prev.Next = next;
+        next.Prev = prev;
+    }
+
+    // Helper 2: Drop a node right behind _dummyHead
+    private void AddNodeToHead(DbNode node) 
+    {
+        // ---------------------------------------------------------
+        // YOUR TURN:
+        // 1. Find the node currently sitting right behind _dummyHead. (let's call it 'temp')
+        // 2. Wire 'node' so it sits directly between _dummyHead and 'temp'.
+        //    (You will need to update 4 pointers!)
+        // ---------------------------------------------------------
+        var temp = _dummyHead.Next;
+        _dummyHead.Next = node;
+        node.Prev = _dummyHead;
+        node.Next = temp;
+        temp.Prev = node;
+    }
+
+
+    public int Get(int key) 
+    {
+        // ---------------------------------------------------------
+        // YOUR TURN:
+        // 1. If the key is NOT in _cache, return -1.
+        // 2. If the key IS in _cache:
+        //    a. Retrieve the node from the dictionary.
+        //    b. Rip it out of its current position (use your helper).
+        //    c. Drop it at the head to mark it as Most Recently Used (use helper).
+        //    d. Return the node's Value.
+        // ---------------------------------------------------------
+        if (!_cache.ContainsKey(key)){
+            return -1;
+        }
+        else
+        {
+            var node = _cache[key];
+            RemoveNode(node);
+            AddNodeToHead(node);
+            return node.Value;
+        }
+    }
+
+    public void Put(int key, int value) 
+    {
+        // ---------------------------------------------------------
+        // YOUR TURN:
+        // 1. If the key IS already in _cache:
+        //    a. Retrieve the node and update its Value to the new value.
+        //    b. Remove it, then Add it to head (mark as MRU).
+        //
+        // 2. If the key is NOT in _cache:
+        //    a. Instantiate a brand new DbNode.
+        //    b. Add it to the _cache dictionary.
+        //    c. Add it to the head of the list.
+        //
+        //    d. STRICT CAPACITY CHECK: If _cache.Count > _capacity:
+        //       i. Identify the Least Recently Used node (where is it?).
+        //       ii. Remove it from the list (use helper).
+        //       iii. Remove it from the _cache dictionary! 
+        //            (Hint: This is exactly why we store Key inside DbNode)
+        // ---------------------------------------------------------
+        if (_cache.ContainsKey(key))
+        {
+            var node = _cache[key];
+            node.Value = value;
+            RemoveNode(node);
+            AddNodeToHead(node);
+        }
+        else
+        {
+            var node = new DbNode(key, value);
+            _cache[key] = node;
+            AddNodeToHead(node);
+            if (_cache.Count > _capacity)
+            {
+                var lruNode = _dummyTail.Prev;
+                RemoveNode(lruNode);
+                _cache.Remove(lruNode.Key);
+            }
+        }
+    }
+
+
+    // Time & Space Complexity BreakdownTime Complexity: strictly $O(1)$ for both Get and Put. 
+    //          Dictionary lookups are $O(1)$, and jumping directly to a memory address to rewire Doubly Linked List pointers is $O(1)$.
+    // Space Complexity: $O(C)$ where $C$ is the capacity. The Dictionary and the Doubly Linked List both scale linearly up to the exact capacity ceiling and hold steady.
+}
