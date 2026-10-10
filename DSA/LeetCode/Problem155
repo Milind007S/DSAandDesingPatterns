@@ -1,0 +1,90 @@
+#region Problem Statement
+// 155. Min Stack
+// Solved
+// Medium
+// Topics
+// premium lock icon
+// Companies
+// Hint
+// Design a stack that supports push, pop, top, and retrieving the minimum element in constant time.
+
+// Implement the MinStack class:
+
+// MinStack() initializes the stack object.
+// void push(int value) pushes the element value onto the stack.
+// void pop() removes the element on the top of the stack.
+// int top() gets the top element of the stack.
+// int getMin() retrieves the minimum element in the stack.
+// You must implement a solution with O(1) time complexity for each function.
+
+ 
+
+// Example 1:
+
+// Input
+// ["MinStack","push","push","push","getMin","pop","top","getMin"]
+// [[],[-2],[0],[-3],[],[],[],[]]
+
+// Output
+// [null,null,null,null,-3,null,0,-2]
+
+// Explanation
+// MinStack minStack = new MinStack();
+// minStack.push(-2);
+// minStack.push(0);
+// minStack.push(-3);
+// minStack.getMin(); // return -3
+// minStack.pop();
+// minStack.top();    // return 0
+// minStack.getMin(); // return -2
+ 
+
+// Constraints:
+
+// -231 <= val <= 231 - 1
+// Methods pop, top and getMin operations will always be called on non-empty stacks.
+// At most 3 * 104 calls will be made to push, pop, top, and getMin.
+#endregion
+
+public class MinStack {
+    private Stack<int> stack;
+    private int min;
+
+    public MinStack() {
+        stack = new Stack<int>();
+    }
+    
+    public void Push(int val) {
+        if(stack.Count == 0) { min = val; }
+
+        // Store the difference between the value and the current minimum
+        stack.Push(val - min);
+
+        // Update the minimum if the new value is smaller
+        if(val < min)
+        {
+            min = val;
+        }
+    }
+    
+    public void Pop() {
+        int val = stack.Pop();
+
+        // If the popped value is negative, it means it was the minimum value, so we need to update the minimum
+        if(val < 0)
+        {
+            min -= val;
+        }
+    }
+    
+    public int Top() {
+        int top = stack.Peek();
+        
+        // If the top value is negative, it means it was the minimum value, so we return the current minimum
+        return top > 0 ? (int)(top + min) : (int)(min);
+    }
+    
+    public int GetMin() {
+        return (int)min;
+    }
+}

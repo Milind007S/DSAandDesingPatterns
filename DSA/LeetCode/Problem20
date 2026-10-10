@@ -1,0 +1,165 @@
+#region Problem Statement
+// 20. Valid Parentheses
+// Solved
+// Easy
+// Topics
+// premium lock icon
+// Companies
+// Hint
+// Given a string s containing just the characters '(', ')', '{', '}', '[' and ']', determine if the input string is valid.
+
+// An input string is valid if:
+
+// Open brackets must be closed by the same type of brackets.
+// Open brackets must be closed in the correct order.
+// Every close bracket has a corresponding open bracket of the same type.
+ 
+
+// Example 1:
+
+// Input: s = "()"
+
+// Output: true
+
+// Example 2:
+
+// Input: s = "()[]{}"
+
+// Output: true
+
+// Example 3:
+
+// Input: s = "(]"
+
+// Output: false
+
+// Example 4:
+
+// Input: s = "([])"
+
+// Output: true
+
+// Example 5:
+
+// Input: s = "([)]"
+
+// Output: false
+
+ 
+
+// Constraints:
+
+// 1 <= s.length <= 104
+// s consists of parentheses only '()[]{}'.
+#endregion
+
+public class Solution 
+{
+    public bool IsValid(string s) 
+    {
+        // SDE-2 Optimization: An odd-length string mathematically cannot be valid.
+        if (s.Length % 2 != 0) return false;
+
+        // SDE-2 Optimization: Pre-allocate capacity to max possible stack size
+        Stack<char> stack = new Stack<char>(s.Length);
+
+        foreach (char c in s) 
+        {
+            // ---------------------------------------------------------
+            // YOUR TURN: Write the parsing logic!
+            // 
+            // 1. If 'c' is an opening bracket '(', '{', or '[', push it to the stack.
+            // 2. If 'c' is a closing bracket ')', '}', or ']':
+            //    a. Check if the stack is empty (if so, return false).
+            //    b. Pop the top item off the stack.
+            //    c. Check if the popped item matches the correct opening bracket for 'c'.
+            //       (If they don't match, return false).
+            // ---------------------------------------------------------
+            
+            if (c == '(' || c == '{' || c == '[') 
+            {
+                stack.Push(c);
+            } 
+            else 
+            {
+                if (stack.Count == 0) return false;
+
+                char top = stack.Pop();
+                if ((c == ')' && top != '(') ||
+                    (c == '}' && top != '{') ||
+                    (c == ']' && top != '[')) 
+                {
+                    return false;
+                }
+            }
+            // Write your routing logic here...
+            
+        }
+
+        // If the loop finishes but the stack still has opening brackets left over, it's invalid!
+        return stack.Count == 0;
+    }
+
+
+// optimized solution:
+
+    public bool IsValid(string s) 
+    {
+        if (s.Length % 2 != 0) return false;
+
+        Stack<char> stack = new Stack<char>(s.Length);
+
+        foreach (char c in s) 
+        {
+            // SDE-2 Trick: Push the EXPECTED closing bracket
+            if (c == '(') stack.Push(')');
+            else if (c == '{') stack.Push('}');
+            else if (c == '[') stack.Push(']');
+            
+            // If it's a closing bracket, it MUST match the popped expected bracket
+            else if (stack.Count == 0 || stack.Pop() != c) 
+            {
+                return false;
+            }
+        }
+
+        return stack.Count == 0;
+    }
+
+
+// memory and runtime optimized solution:
+
+    public bool IsValid(string s) {
+        var n = s.Length;
+        if ((n & 1) == 1) {
+            return false;
+        }
+        var stack = new char[n];
+        var top = 0;
+        for (var i = 0; i < n; i++) {
+            var c = s[i];
+            if (c == '(') {
+                stack[top++] = ')';
+            } else if (c == '[') {
+                stack[top++] = ']';
+            } else if (c == '{') {
+                stack[top++] = '}';
+            } else if (top == 0 || stack[--top] != c) {
+                return false;
+            }
+        }
+        return top == 0;
+    }
+}
+
+
+
+
+
+
+
+// Time & Space Complexity Breakdown
+// Time Complexity: $O(N)$ where $N$ is the length of the string. 
+//          We traverse the string exactly once. Push and Pop operations on a pre-allocated stack are strictly $O(1)$.
+// Space Complexity: $O(N)$. In the worst-case scenario (e.g., "(((((((("), 
+//          we will push every single character onto the stack, utilizing $N$ slots of memory.

@@ -18,6 +18,7 @@ public class LRUCache
     private readonly int _capacity;
     private readonly DbNode _dummyHead;
     private readonly DbNode _dummyTail;
+    private readonly object _syncRoot = new object();
     
     // ---------------------------------------------------------
     // MISSING BLOCK 1: Declare the Dictionary. 
@@ -90,12 +91,13 @@ public class LRUCache
         //    c. Drop it at the head to mark it as Most Recently Used (use helper).
         //    d. Return the node's Value.
         // ---------------------------------------------------------
-        if (!_cache.ContainsKey(key)){
-            return -1;
-        }
-        else
+        lock (_syncRoot)
         {
-            var node = _cache[key];
+            if (!_cache.TryGetValue(key, out var node))
+            {
+                return -1;
+            }
+
             RemoveNode(node);
             AddNodeToHead(node);
             return node.Value;
@@ -121,23 +123,25 @@ public class LRUCache
         //       iii. Remove it from the _cache dictionary! 
         //            (Hint: This is exactly why we store Key inside DbNode)
         // ---------------------------------------------------------
-        if (_cache.ContainsKey(key))
+        lock (_syncRoot)
         {
-            var node = _cache[key];
-            node.Value = value;
-            RemoveNode(node);
-            AddNodeToHead(node);
-        }
-        else
-        {
-            var node = new DbNode(key, value);
-            _cache[key] = node;
-            AddNodeToHead(node);
-            if (_cache.Count > _capacity)
+            if (_cache.TryGetValue(key, out var node))
             {
-                var lruNode = _dummyTail.Prev;
-                RemoveNode(lruNode);
-                _cache.Remove(lruNode.Key);
+                node.Value = value;
+                RemoveNode(node);
+                AddNodeToHead(node);
+            }
+            else
+            {
+                node = new DbNode(key, value);
+                _cache[key] = node;
+                AddNodeToHead(node);
+                if (_cache.Count > _capacity)
+                {
+                    var lruNode = _dummyTail.Prev;
+                    RemoveNode(lruNode);
+                    _cache.Remove(lruNode.Key);
+                }
             }
         }
     }
