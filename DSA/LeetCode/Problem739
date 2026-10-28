@@ -1,0 +1,37 @@
+public class Solution {
+    public int[] DailyTemperatures(int[] temperatures) 
+{
+    int n = temperatures.Length;
+    int[] result = new int[n]; // By default, C# fills this with 0s.
+
+    // The Waiting Room: stores the INDICES of days waiting for a warmer temperature
+    Stack<int> stack = new(n);
+
+    for (int i = 0; i < n; i++) 
+    {
+        // ---------------------------------------------------------
+        // YOUR TURN: Write the Monotonic Resolution logic!
+        // 
+        // 1. While the stack is NOT empty AND the current temperature (temperatures[i]) 
+        //    is GREATER than the temperature at the index stored at the top of the stack:
+        //    a. Pop the index from the top of the stack (let's call it prevIndex).
+        //    b. Calculate the days waited: current index (i) - prevIndex.
+        //    c. Store this distance in result[prevIndex].
+        //
+        // 2. OUTSIDE THE WHILE LOOP: 
+        //    Push the current index (i) onto the stack to wait for its own warmer day.
+        // ---------------------------------------------------------
+        
+        // Write your logic here...
+
+        while(stack.Count >0 && tempratures[i] > temperatures[stack.Peek()])
+        {
+            int prev = stack.Pop();
+            result[prev] = i - prev;
+        }
+        stack.Push(i);
+    }
+
+    return result;
+}
+}

@@ -1,0 +1,49 @@
+public class MinStack 
+{
+    // SDE-2 Architecture: Contiguous array of ValueTuples (Structs). Zero Heap allocations per push.
+    private Stack<(int Value, int Min)> _stack;
+
+    public MinStack() 
+    {
+        // Pre-allocate to prevent array-doubling GC spikes
+        _stack = new Stack<(int Value, int Min)>(10000); 
+    }
+
+    public void Push(int val) 
+    {
+        // ---------------------------------------------------------
+        // YOUR TURN: Write the dual-state insertion logic!
+        // 
+        // 1. If _stack is empty, 'val' is the new minimum.
+        // 2. If _stack is NOT empty, peek at the current minimum. 
+        //    Calculate the new minimum (is 'val' smaller than the current minimum?).
+        // 3. Push a new tuple (val, newMinimum) onto _stack.
+        // ---------------------------------------------------------
+        
+        // Write your logic here...
+        
+        if(_stack.Count == 0)
+        {
+            _stack.Push((val, val));
+        }
+        else
+        {
+            _stack.Push((val, Math.Min(val, _stack.Peek().Min)));
+        }
+    }
+
+    public void Pop() 
+    {
+        _stack.Pop();
+    }
+
+    public int Top() 
+    {
+        return _stack.Peek().Value;
+    }
+
+    public int GetMin() 
+    {
+        return _stack.Peek().Min;
+    }
+}
