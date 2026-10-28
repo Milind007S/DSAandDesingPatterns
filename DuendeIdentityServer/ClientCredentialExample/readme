@@ -1,0 +1,28 @@
+An ID Token is strictly for the Client application to know who logged in (like a digital driver's license). An Access Token is for the API (like a hotel room keycard). Even better: because this is a Machine-to-Machine (ClientCredentials) flow with no human user, Duende doesn't even issue an ID Token! (And on Step 1, the daemon calls POST /connect/token directly, because GET /connect/authorize is only for interactive browser logins).
+Duende signs the JWT with its Private Key, InventoryApi only needs to download Duende's Public Key once from /.well-known/openid-configuration/jwks and cache it in memory. Every incoming request is verified locally in microseconds using CPU math—zero network calls to Duende required.
+
+
+
+sequenceDiagram
+    
+    participant Daemon as Warehouse Daemon (Client)
+    participant Duende as Duende IdentityServer (STS)
+    participant API as Inventory API (Resource Server)
+
+    Note over API,Duende: On Startup (or cached periodically):<br/>API fetches Discovery & Public Keys (/.well-known/openid-configuration/jwks)
+    Daemon->>Duende: POST /connect/token (grant_type=client_credentials, client_id, client_secret, scope=inventory.read)
+    Duende-->>Daemon: 200 OK (Returns Access_Token only)
+    Daemon->>API: GET /api/stock (Authorization: Bearer <Access_Token>)
+    Note over API: Validates JWT signature, 'iss', 'aud', 'exp', and 'typ'<br/>locally in memory using cached Public Key
+    API-->>Daemon: 200 OK (Stock JSON)
+
+
+
+RFC 9068
+Both ID Tokens and Access Tokens are signed by the exact same Duende private key. However:
+
+Duende stamps ID Tokens with "typ": "JWT".
+
+Duende stamps Access Tokens with "typ": "at+jwt".
+
+By setting options.TokenValidationParameters.ValidTypes = ["at+jwt"], JwtBearerMiddleware inspects the header first and immediately rejects any ID Token someone tries to sneak into an Authorization: Bearer header—even though its cryptographic signature is completely valid.
